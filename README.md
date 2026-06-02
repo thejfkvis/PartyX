@@ -78,6 +78,10 @@ party.on("message", (msg) => {
     console.log("System message:", msg);
 });
 
+party.on("pubsub_message", (msg) => {
+    console.log("PubSub message:", msg)
+})
+
 // Errors
 party.on("error", (error) => {
     console.error("Party error:", error);
@@ -93,7 +97,7 @@ party.on("left", () => {
 
 **Send a chat message:**
 ```javascript
-await party.sendChat("Hello, party!");
+await party.sendChat("Hello world!");
 ```
 
 ## Options
