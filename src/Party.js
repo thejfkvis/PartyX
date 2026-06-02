@@ -196,7 +196,7 @@ class Party extends EventEmitter {
 
     async sendChat(message) {
         if (!this.rpc) throw new Error("RPC not connected");
-        return this.rpc.send("PartyChat_SendChat_v1_0", { message });
+        return this.rpc.write("PartyChat_SendChat_v1_0", { partyId: this.party.id, message });
     }
 
     async connectRPC(partyId = this.party?.id, version = this.options.clientVersion) {
