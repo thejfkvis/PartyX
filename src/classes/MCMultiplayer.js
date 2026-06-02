@@ -99,9 +99,22 @@ class MCMultiplayerAPI extends PlayFabAPI {
         });
     }
 
+    async acceptInvite(partyId, connectionString, clientVersion = "1.26.21") {
+        const body = {
+            connectionString,
+            memberData: { clientVersion }
+        };
+
+        return this.#req({
+            endpoint: `/party/${partyId}/invite/accept`,
+            method: "POST",
+            body
+        });
+    }
+
     async ignoreInvite(partyId) {
         return this.#req({
-            endpoint: `/party/${partyId}/ignore`,
+            endpoint: `/party/${partyId}/invite/ignore`,
             method: "POST"
         });
     }

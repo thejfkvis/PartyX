@@ -22,7 +22,7 @@ class PlayFabAPI extends XboxAPI {
 
         if (!body?.CreateAccount || extraHeaders["x-entitytoken"]) {
             this.auth = await this.loginWithXbox();
-            if (this.auth.errorMsg) return this.auth;
+            if (this.auth.errorMsg) throw new Error(`Login failed: ${this.auth.errorMsg}`);
 
             extraHeaders["x-authorization"] = this.auth.SessionTicket;
         }
@@ -43,7 +43,7 @@ class PlayFabAPI extends XboxAPI {
         const data = await response.json();
 
         if (response.status !== 200) {
-            return { errorMsg: `[${endpoint}] ${data.code || 'Unknown'} ${data.status}. Error: ${data.errorMessage || 'No error message'}` }
+            throw new Error(`[${endpoint}] ${data.code || 'Unknown'} ${data.status}. Error: ${data.errorMessage || 'No error message'}`);
         }
 
         return data.data || data;
@@ -52,7 +52,7 @@ class PlayFabAPI extends XboxAPI {
     async loginWithXbox() {
         const xboxToken = await this.getXboxAuthToken("https://b980a380.minecraft.playfabapi.com/");
 
-        if (!xboxToken || xboxToken.errorMsg) return xboxToken;
+        if (!xboxToken || xboxToken.errorMsg) throw new Error(`Login failed: ${xboxToken.errorMsg}`);
 
         const body = {
             CreateAccount: true,
@@ -70,7 +70,7 @@ class PlayFabAPI extends XboxAPI {
     async getLobby(LobbyId) {
         const authData = await this.loginWithXbox();
 
-        if (authData.errorMsg) return authData;
+        if (authData.errorMsg) throw new Error(`Login failed: ${authData.errorMsg}`);
 
         const body = { LobbyId }
 
@@ -82,7 +82,7 @@ class PlayFabAPI extends XboxAPI {
     async findLobbies(LobbyId) {
         const authData = await this.loginWithXbox();
 
-        if (authData.errorMsg) return authData;
+        if (authData.errorMsg) throw new Error(`Login failed: ${authData.errorMsg}`);
 
         return await this.#req("/Lobby/FindLobbies", null, {
             'X-EntityToken': authData.EntityToken.EntityToken
@@ -92,7 +92,7 @@ class PlayFabAPI extends XboxAPI {
     async subscribeToLobbyResource(Type, ResourceId, pubSubConnectionHandle) {
         const authData = await this.loginWithXbox();
 
-        if (authData.errorMsg) return authData;
+        if (authData.errorMsg) throw new Error(`Login failed: ${authData.errorMsg}`);
 
         const body = {
             EntityKey: {
@@ -115,7 +115,7 @@ class PlayFabAPI extends XboxAPI {
     async getPubSubBearerToken() {
         const authData = await this.loginWithXbox();
 
-        if (authData.errorMsg) return authData;
+        if (authData.errorMsg) throw new Error(`Login failed: ${authData.errorMsg}`);
 
         return await this.#req("/pubsub/negotiate?negotiateVersion=1", null, {
             'X-EntityToken': authData.EntityToken.EntityToken

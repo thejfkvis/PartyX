@@ -68,8 +68,6 @@ class PubSubAPI extends PlayFabAPI {
         try {
             await connection.start();
             const sessionId = v4fast();
-            const match = bearer.url.match(/pubsub-(.*?)\.service/);
-            const extracted = match ? match[1] : "";
 
             const request = {
                 SessionId: v4fast(),
@@ -82,16 +80,16 @@ class PubSubAPI extends PlayFabAPI {
         } catch (err) {
             console.error(err);
 
-            return { errorMsg: "Failed to establish WebSocket connection" };
+            throw new Error("Failed to establish PubSub connection");
         }
     }
 
     async getPubSubConnectionHandle() {
         const authData = await this.loginWithXbox();
-        if (authData.errorMsg) return authData;
+        if (authData.errorMsg) throw new Error(`Login failed: ${authData.errorMsg}`);
 
         const bearer = await this.getPubSubBearerToken();
-        if (bearer.errorMsg) return bearer;
+        if (bearer.errorMsg) throw new Error(`Failed to retrieve PubSub bearer token: ${bearer.errorMsg}`);
 
         const urlObj = new URL(bearer.url);
         this.apiUrl = urlObj.origin;
@@ -114,7 +112,7 @@ class PubSubAPI extends PlayFabAPI {
 
         return {
             connectionHandle: ws.connectionHandle,
-            ws
+            ws: ws.connection
         }
     }
 }

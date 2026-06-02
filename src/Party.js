@@ -13,6 +13,8 @@ class Party extends EventEmitter {
             privacy: "closed",
             restrictInvitesToLeader: false,
             autoConnectRPC: true,
+            inviteTimeout: 60000,
+            waitForInvite: false,
             ...options,
         };
 
@@ -30,8 +32,8 @@ class Party extends EventEmitter {
 
     _setupExitHandlers() {
         const cleanup = async () => {
-            if (this.party?.result?.id) {
-                
+            if (this.party?.id) {
+
                 console.log("\n[Party] Clean exit: Leaving party...");
                 try {
                     await this.leaveParty();
@@ -58,6 +60,31 @@ class Party extends EventEmitter {
         });
     }
 
+    async waitForInvite(timeoutMs = this.options.inviteTimeout || 60000) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error("Timed out waiting for a party invite."));
+            }, timeoutMs);
+
+            const listener = (msg) => {
+                try {
+                    const payloadString = Buffer.from(msg.payload).toString("utf8");
+                    const data = JSON.parse(payloadString);
+
+                    if (data.lobbyId || msg.topic.includes("LobbyInvite")) {
+                        clearTimeout(timeout);
+
+                        resolve(data);
+                    }
+                } catch (e) {
+                    throw new Error("Failed to parse PubSub message while waiting for invite: " + e.message);
+                }
+            };
+
+            this.pub.ws.on("ReceiveMessage", listener);
+        });
+    }
+
     async init() {
         if (this.initialized) return this;
 
@@ -65,16 +92,38 @@ class Party extends EventEmitter {
             this.pub = await this.getPubSubConnectionHandle();
             if (!this.pub?.connectionHandle) throw new Error("Failed to retrieve PubSub connection handle");
 
-            if (this.options.partyId) {
-                this.party = await this.getLobby(this.options.partyId);
+            this.pub.ws.on("ReceiveMessage", (msg) => {;
+                this.emit("pubsub_message", msg);
+            });
+
+            await this.subscribeToLobbyResource("LobbyInvite", "@me", this.pub.connectionHandle);
+
+            let partyId;
+
+            if (this.options.waitForInvite) {
+                console.log("Waiting for a lobby invite...");
+
+                let partyData = await this.waitForInvite();
+                partyId = partyData.lobbyId;
+
+                const invite = await this.MCMAPI.acceptInvite(partyData.lobbyId, partyData.connectionString);
+
+                if (!invite?.result?.id) throw new Error("Could not determine Party ID from invite");
+
+                const lobbyData = await this.getLobby(invite.result.id);
+
+                this.party = lobbyData.Lobby
             } else {
-                this.party = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
+                const lobbyData = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
+
+                this.party = lobbyData.result
+
+                partyId = this.party?.id;
             }
 
-            const partyId = this.party?.result?.id;
             if (!partyId) throw new Error("Could not determine Party ID");
 
-            await this.subscribeToLobbyResource("LobbyResource", partyId, this.pub.connectionHandle);
+            await this.subscribeToLobbyResource("LobbyChange", partyId, this.pub.connectionHandle);
 
             if (this.options.autoConnectRPC) await this.connectRPC(partyId, this.options.clientVersion);
 
@@ -120,23 +169,23 @@ class Party extends EventEmitter {
     }
 
     async invitePlayer(playerId, clientVersion = this.options.clientVersion) {
-        if (!this.party?.result?.id) throw new Error("No active party to invite to");
-        return this.MCMAPI.invitePlayerToParty(this.party.result.id, playerId, clientVersion);
+        if (!this.party?.id) throw new Error("No active party to invite to");
+        return this.MCMAPI.invitePlayerToParty(this.party.id, playerId, clientVersion);
     }
 
     async leaveParty() {
-        if (!this.party?.result?.id) return;
+        if (!this.party?.id) return;
 
-        const partyId = this.party.result.id;
+        const partyId = this.party.id;
         try {
             if (this.rtc?.close) this.rtc.close();
-            
+
             const res = await this.MCMAPI.leaveParty(partyId);
             this.party = null;
             this.rpc = null;
             this.rtc = null;
             this.initialized = false;
-            
+
             this.emit("left");
             return res;
         } catch (error) {
@@ -149,7 +198,7 @@ class Party extends EventEmitter {
         return this.rpc.send("PartyChat_SendChat_v1_0", { message });
     }
 
-    async connectRPC(partyId = this.party?.result?.id, version = this.options.clientVersion) {
+    async connectRPC(partyId = this.party?.id, version = this.options.clientVersion) {
         if (!partyId) throw new Error("Missing party id for RPC connection");
 
         const rpc = new JSONRPC(partyId, this.MCMAPI.flow, version);

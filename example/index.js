@@ -17,7 +17,8 @@ const { Authflow, Titles } = require("prismarine-auth");
         restrictInvitesToLeader: false,
         autoConnectRPC: true,
         /*
-            partyId: "", //  WIP
+            waitForInvite: true,
+            inviteTimeout: 60000,
             flow: "sisu",
             authTitle: Titles.MinecraftNintendoSwitch,
             deviceType: "Nintendo",
@@ -28,7 +29,7 @@ const { Authflow, Titles } = require("prismarine-auth");
     try {
         await PAPI.init();
 
-        console.log("Party Created with ID:", PAPI.party.result.id);
+        console.log("Party Created with ID:", PAPI.party.id);
 
         PAPI.invitePlayer("Xbox User ID")
 

@@ -29,7 +29,7 @@ class XboxAPI {
             console.error(e);
         }
 
-        if (!xboxToken) return { errorMsg: "Failed to get Xbox token" }
+        if (!xboxToken) throw new Error("Failed to retrieve Xbox token.");
 
         if (typeof xboxToken.userXUID === "string") {
             this.xuid = xboxToken.userXUID;
@@ -45,7 +45,7 @@ class XboxAPI {
 
         const result = await this.flow.getMinecraftBedrockServicesToken({ version });
 
-        if (!result.mcToken) return { errorMsg: "Failed to retrieve Minecraft token." }
+        if (!result.mcToken) throw new Error("Failed to retrieve Minecraft token.");
 
         return result.mcToken;
     }
@@ -55,7 +55,7 @@ class XboxAPI {
 
         const authToken = await this.getXboxAuthToken(config.relyingParty);
 
-        if (typeof authToken === "object" && authToken.errorMsg) return authToken;
+        if (typeof authToken === "object" && authToken.errorMsg) throw new Error(`Login failed: ${authToken.errorMsg}`);
 
         const dHeaders = {
             "Accept-Language": "en-US",
@@ -105,7 +105,7 @@ class XboxAPI {
     }
 
     async gamertagToXuid(gamertag = "") {
-        if (typeof gamertag != "string" || gamertag.length === 0) return { errorMsg: "No gamertag provided." }
+        if (typeof gamertag != "string" || gamertag.length === 0) throw new Error("No gamertag provided");
 
         const result = await this.#req(`https://profile.xboxlive.com/users/gt(${gamertag})/profile/settings`, {
             method: "GET",
@@ -124,7 +124,7 @@ class XboxAPI {
         await this.getXboxAuthToken();
 
         if (!xuid) xuid = this.xuid;
-        if (!xuid || typeof xuid != "string" || xuid.length === 0) return { errorMsg: "No XUID provided" }
+        if (!xuid || typeof xuid != "string" || xuid.length === 0) throw new Error("No XUID provided");
 
         const result = await this.#req(`https://peoplehub.xboxlive.com/users/me/people/xuids(${xuid})/decoration/detail,preferredColor,presenceDetail`, {
             method: "GET",

@@ -105,7 +105,9 @@ When creating a Party instance, you can pass these options:
 - `privacy` - Party privacy level: "open" or "closed" (default: "closed")
 - `restrictInvitesToLeader` - Only leader can invite players (default: false)
 - `autoConnectRPC` - Automatically connect RPC on init (default: true)
-- `partyId` - Join existing party by ID (optional) (WORK IN PROGRESS)
+- `waitForInvite` - Wait for a invite from a user and automatically accept it (optional)
+- `inviteTimeout` - The amount of time to wait for a invite if waitForInvite is enabled (optional)
 
 ## Plans
-Join existing parties still needs to be worked on
+- Join listed opened parties
+- Redirect to world/server/realm support
