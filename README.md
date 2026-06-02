@@ -17,7 +17,7 @@ const authflow = new Authflow(undefined, "./auth", {
     flow: "sisu",
     authTitle: Titles.MinecraftNintendoSwitch,
     deviceType: "Nintendo",
-    deviceVersion: "0.0.0",
+    deviceVersion: "0.0.0"
 });
 
 const party = new Party({
@@ -25,7 +25,7 @@ const party = new Party({
     clientVersion: "1.26.21",
     privacy: "open",
     restrictInvitesToLeader: false,
-    autoConnectRPC: true,
+    autoConnectRPC: true
 });
 
 await party.init();
@@ -36,7 +36,7 @@ await party.init();
 **Create a new party:**
 ```javascript
 await party.init(); // Creates a new party by default
-console.log("Party ID:", party.party.result.id);
+console.log("Party ID:", party.party.id);
 ```
 
 **Invite a player:**
