@@ -1,9 +1,11 @@
 # PartyX
-A library to manage the new Minecraft Parties feature
+A library to manage Minecraft Parties!
+
+![PartyX Showcase](./imgs/PartyXShowcase.png)
 
 ## Installation
 ```bash
-npm install thejfkvis/PartyX
+npm i thejfkvis/PartyX
 ```
 
 ## Usage
@@ -115,4 +117,3 @@ When creating a Party instance, you can pass these options:
 
 ## Plans
 - Join listed opened parties
-- Redirect to world/server/realm support

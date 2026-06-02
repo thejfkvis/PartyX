@@ -48,7 +48,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
     }
 
     async getParty(partyId, playfabId, clientVersion = Version) {
-        return this.#req({
+        return await this.#req({
             endpoint: `/party/${partyId}/invite/${playfabId}`,
             method: "GET",
             version: clientVersion
@@ -56,7 +56,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
     }
 
     async createParty(clientVersion = Version, privacy = "closed", restrictInvitesToLeader = false) {
-        return this.#req({
+        return await this.#req({
             endpoint: "/party/create",
             version: clientVersion,
             body: {
@@ -82,7 +82,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         const xboxToken = await this.getXboxAuthToken("https://b980a380.minecraft.playfabapi.com/")
         if (typeof xboxToken === "object" && xboxToken.errorMsg) throw new Error(xboxToken.errorMsg);
 
-        return this.#req({
+        return await this.#req({
             endpoint: "/party/findJoinable",
             version: clientVersion,
             extraHeaders: { "Accept-Encoding": "gzip" },
@@ -95,7 +95,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
     }
 
     async leaveParty(partyId) {
-        return this.#req({
+        return await this.#req({
             endpoint: `/party/${partyId}/leave`,
             method: "POST"
         });
@@ -107,7 +107,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
             memberData: { clientVersion }
         };
 
-        return this.#req({
+        return await this.#req({
             endpoint: `/party/${partyId}/invite/accept`,
             method: "POST",
             body
@@ -115,9 +115,74 @@ class MCMultiplayerAPI extends PlayFabAPI {
     }
 
     async ignoreInvite(partyId) {
-        return this.#req({
+        return await this.#req({
             endpoint: `/party/${partyId}/invite/ignore`,
             method: "POST"
+        });
+    }
+
+    async manageDestination(partyId, method = "POST", type = "gathering", options = {}) {
+        if (!partyId) throw new Error("Party ID is required to manage destination");
+
+        const destinationType = type.toLowerCase();
+
+        const defaults = {
+            world: {
+                destinationScanText: "Minecraft World",
+                xblSessionHandleId: "0"
+            },
+            realm: {
+                destinationScanText: "Minecraft Realm",
+                realmId: "0"
+            },
+            gathering: {
+                destinationInfo: {
+                    creatorId: "",
+                    experienceId: "",
+                    experienceName: "Experience Name",
+                    scenarioId: "",
+                    serverId: "",
+                    targetId: "",
+                    worldId: "",
+                    worldName: "World Name"
+                }
+            }
+        };
+
+        let body;
+
+        switch (destinationType) {
+            case "realm":
+                body = {
+                    ...defaults.realm,
+                    ...options
+                }
+                break
+            case "gathering":
+                body = {
+                    destinationInfo: {
+                        ...defaults.gathering.destinationInfo,
+                        ...(options.destinationInfo || options)
+                    }
+                }
+                break;
+            default:
+                body = options;
+                break;
+        }
+
+        return await this.#req({
+            endpoint: `/party/${partyId}/destination/${destinationType}`,
+            method: method.toUpperCase(),
+            body: method.toUpperCase() === "DELETE" ? null : body
+        });
+    }
+
+    async joinExperience(partyId) {
+        return await this.#req({
+            endpoint: `/join/experience/${partyId}`,
+            method: "POST",
+            apiVersion: "2.0"
         });
     }
 }

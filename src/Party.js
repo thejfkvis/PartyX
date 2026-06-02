@@ -199,6 +199,18 @@ class Party extends EventEmitter {
         return this.rpc.write("PartyChat_SendChat_v1_0", { partyId: this.party.id, message });
     }
 
+    async setDestination(type, params) {
+        if (!this.party.id) throw new Error("No Party ID found. Did you create a party?")
+
+        return await this.MCMAPI.manageDestination(this.party.id, "POST", type, params)
+    }
+
+    async deleteDestination(type) {
+        if (!this.party.id) throw new Error("No Party ID found. Did you create a party?")
+
+        return await this.MCMAPI.manageDestination(this.party.id, "DELETE", type, {})
+    }
+
     async connectRPC(partyId = this.party?.id, version = this.options.clientVersion) {
         if (!partyId) throw new Error("Missing party id for RPC connection");
 

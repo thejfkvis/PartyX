@@ -43,6 +43,17 @@ const { Authflow, Titles } = require("prismarine-auth");
 
         PAPI.on("connected", (rtc) => {
             console.log("Connected");
+
+            if (!PAPI.options.waitForInvite) PAPI.setDestination("gathering", {
+                creatorId: "0",
+                experienceId: "0",
+                experienceName: "PartyX Session",
+                scenarioId: "0",
+                serverId: "0",
+                targetId: "0",
+                worldId: "0",
+                worldName: "PartyX"
+            })
         });
     } catch (error) {
         console.error("Failed to initialize party:", error);
