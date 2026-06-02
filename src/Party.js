@@ -1,5 +1,6 @@
 const { EventEmitter } = require("node:events");
 const { createRTC } = require("./classes/RTC");
+const { Version } = require("./Constants")
 
 const MCMultiplayerAPI = require("./classes/MCMultiplayer");
 const PubSubAPI = require("./classes/PubSub");
@@ -9,7 +10,7 @@ class Party extends EventEmitter {
     constructor(options = {}) {
         super();
         this.options = {
-            clientVersion: "1.26.21",
+            clientVersion: Version,
             privacy: "closed",
             restrictInvitesToLeader: false,
             autoConnectRPC: true,

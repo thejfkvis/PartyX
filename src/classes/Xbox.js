@@ -1,3 +1,4 @@
+const { Version } = require("../Constants")
 const { Authflow, Titles } = require("prismarine-auth");
 
 class XboxAPI {
@@ -38,7 +39,7 @@ class XboxAPI {
         return `XBL3.0 x=${xboxToken.userHash};${xboxToken.XSTSToken}`;
     }
 
-    async getMinecraftBedrockServicesToken(version = "1.26.21") {
+    async getMinecraftBedrockServicesToken(version = Version) {
         const authToken = await this.getXboxAuthToken();
 
         if (typeof authToken === "object" && authToken.errorMsg) return authToken;

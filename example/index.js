@@ -22,7 +22,7 @@ const { Authflow, Titles } = require("prismarine-auth");
             flow: "sisu",
             authTitle: Titles.MinecraftNintendoSwitch,
             deviceType: "Nintendo",
-            deviceVersion: "0.0.0",
+            deviceVersion: "0.0.0"
         */
     });
 

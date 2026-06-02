@@ -1,3 +1,5 @@
+const { Version } = require("../Constants.js")
+
 const PlayFabAPI = require("./PlayFab.js");
 
 class MCMultiplayerAPI extends PlayFabAPI {
@@ -14,7 +16,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         };
     }
 
-    async #req({ endpoint, method = "POST", body = null, version = "1.26.21", extraHeaders = {} }) {
+    async #req({ endpoint, method = "POST", body = null, version = Version, extraHeaders = {} }) {
         const mcToken = await this.getMinecraftBedrockServicesToken(version);
         if (!mcToken) throw new Error("Failed to retrieve Minecraft token.");
 
@@ -45,7 +47,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         }
     }
 
-    async getParty(partyId, playfabId, clientVersion = "1.26.21") {
+    async getParty(partyId, playfabId, clientVersion = Version) {
         return this.#req({
             endpoint: `/party/${partyId}/invite/${playfabId}`,
             method: "GET",
@@ -53,7 +55,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         });
     }
 
-    async createParty(clientVersion = "1.26.21", privacy = "closed", restrictInvitesToLeader = false) {
+    async createParty(clientVersion = Version, privacy = "closed", restrictInvitesToLeader = false) {
         return this.#req({
             endpoint: "/party/create",
             version: clientVersion,
@@ -65,7 +67,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         });
     }
 
-    async invitePlayerToParty(partyId, playerId, clientVersion = "1.26.21") {
+    async invitePlayerToParty(partyId, playerId, clientVersion = Version) {
         const xboxToken = await this.getXboxAuthToken()
         if (typeof xboxToken === "object" && xboxToken.errorMsg) throw new Error(xboxToken.errorMsg);
 
@@ -76,7 +78,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         });
     }
 
-    async findParties(clientVersion = "1.26.21") {
+    async findParties(clientVersion = Version) {
         const xboxToken = await this.getXboxAuthToken("https://b980a380.minecraft.playfabapi.com/")
         if (typeof xboxToken === "object" && xboxToken.errorMsg) throw new Error(xboxToken.errorMsg);
 
@@ -99,7 +101,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         });
     }
 
-    async acceptInvite(partyId, connectionString, clientVersion = "1.26.21") {
+    async acceptInvite(partyId, connectionString, clientVersion = Version) {
         const body = {
             connectionString,
             memberData: { clientVersion }

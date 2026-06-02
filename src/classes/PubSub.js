@@ -18,7 +18,7 @@ class PubSubAPI extends PlayFabAPI {
         };
     }
 
-    async #req({ endpoint, method = "POST", body = null, version = "1.26.21", extraHeaders = {} }) {
+    async #req({ endpoint, method = "POST", body = null, extraHeaders = {} }) {
         const url = `${this.apiUrl}${endpoint}`;
         const headers = {
             ...this.defaultHeaders,
