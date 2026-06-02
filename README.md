@@ -78,6 +78,7 @@ party.on("message", (msg) => {
     console.log("System message:", msg);
 });
 
+// PubSub (SignalR) messages
 party.on("pubsub_message", (msg) => {
     console.log("PubSub message:", msg)
 })
