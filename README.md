@@ -1,2 +1,111 @@
 # PartyX
 A library to manage the new Minecraft Parties feature
+
+## Installation
+```bash
+npm install thejfkvis/PartyX
+```
+
+## Usage
+
+### Basic Setup
+```javascript
+const { Party } = require("partyx");
+const { Authflow, Titles } = require("prismarine-auth");
+
+const authflow = new Authflow(undefined, "./auth", {
+    flow: "sisu",
+    authTitle: Titles.MinecraftNintendoSwitch,
+    deviceType: "Nintendo",
+    deviceVersion: "0.0.0",
+});
+
+const party = new Party({
+    authflow,
+    clientVersion: "1.26.21",
+    privacy: "open",
+    restrictInvitesToLeader: false,
+    autoConnectRPC: true,
+});
+
+await party.init();
+```
+
+### Creating & Managing Parties
+
+**Create a new party:**
+```javascript
+await party.init(); // Creates a new party by default
+console.log("Party ID:", party.party.result.id);
+```
+
+**Invite a player:**
+```javascript
+await party.invitePlayer("xbox-user-id");
+```
+
+**Leave party:**
+```javascript
+await party.leaveParty();
+```
+
+### Events
+
+Listen to party events:
+```javascript
+// Party is ready
+party.on("ready", ({ partyId, party }) => {
+    console.log("Party ready:", partyId, party);
+});
+
+// Receive chat messages
+party.on("PartyChat_ReceiveChat_v1_0", (params) => {
+    console.log(`[${params.Sender}]: ${params.ScanText}`);
+});
+
+// RTC connection established
+party.on("connected", (rtc) => {
+    console.log("Connected to party");
+});
+
+// Credentials received
+party.on("credentials", (credentials) => {
+    console.log("Credentials:", credentials);
+});
+
+// System messages
+party.on("message", (msg) => {
+    console.log("System message:", msg);
+});
+
+// Errors
+party.on("error", (error) => {
+    console.error("Party error:", error);
+});
+
+// Left party
+party.on("left", () => {
+    console.log("Left the party");
+});
+```
+
+### Chat
+
+**Send a chat message:**
+```javascript
+await party.sendChat("Hello, party!");
+```
+
+## Options
+
+When creating a Party instance, you can pass these options:
+
+- `authflow` - Prismarine Authflow instance (required)
+- `clientVersion` - Minecraft client version (default: "1.26.21")
+- `privacy` - Party privacy level: "open" or "closed" (default: "closed")
+- `restrictInvitesToLeader` - Only leader can invite players (default: false)
+- `autoConnectRPC` - Automatically connect RPC on init (default: true)
+- `partyId` - Join existing party by ID (optional) (WORK IN PROGRESS)
+
+## Plans
+Join existing parties still needs to be worked on
