@@ -28,16 +28,15 @@ class Party extends EventEmitter {
         this._setupExitHandlers();
     }
 
-    /**
-     * Internal method to clean up the party when the script is closed
-     */
     _setupExitHandlers() {
         const cleanup = async () => {
             if (this.party?.result?.id) {
+                
                 console.log("\n[Party] Clean exit: Leaving party...");
                 try {
                     await this.leaveParty();
                 } catch (e) {
+                    console.error("[Party] Error occurred while leaving party:", e);
                 }
             }
         };

@@ -114,7 +114,7 @@ class JSONRPC extends EventEmitter {
                             this.ws.terminate?.()
                         } catch { }
                     }
-                }, 2000)
+                }, 30000)
             }
         } catch (error) {
             this.emit("error", error)

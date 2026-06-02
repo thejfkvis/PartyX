@@ -1,4 +1,5 @@
 const { v4fast } = require("uuid-1345");
+const crypto = require("crypto");
 const PlayFabAPI = require("./PlayFab.js");
 const signalR = require("@microsoft/signalr");
 const msgpack = require("@microsoft/signalr-protocol-msgpack");
@@ -61,22 +62,20 @@ class PubSubAPI extends PlayFabAPI {
             .withHubProtocol(new msgpack.MessagePackHubProtocol())
             .build();
 
-        connection.serverTimeoutInMilliseconds = 30000; // 30 seconds
-        connection.keepAliveIntervalInMilliseconds = 5000; // 5 seconds (default is 15)
+        connection.serverTimeoutInMilliseconds = 30000;
+        connection.keepAliveIntervalInMilliseconds = 5000;
 
         try {
             await connection.start();
-            const sessionId = v4fast(); // Generate a fresh UUID
-            const traceparent = "00-bd462f2d463c4a58b24112ee5b058028-1091abf541e5b92e-00";
+            const sessionId = v4fast();
             const match = bearer.url.match(/pubsub-(.*?)\.service/);
             const extracted = match ? match[1] : "";
 
             const request = {
                 SessionId: v4fast(),
-                TraceParent: "00-bd462f2d463c4a58b24112ee5b058028-1091abf541e5b92e-00"
+                TraceParent: `00-${crypto.randomBytes(32).toString("hex")}-${crypto.randomBytes(16).toString("hex")}-00`
             };
 
-            // Note: Send as a single object argument
             const session = await connection.invoke("StartOrRecoverSession", request);
 
             return { connection, connectionHandle: session.newConnectionHandle };

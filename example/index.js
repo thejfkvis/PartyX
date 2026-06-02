@@ -17,7 +17,7 @@ const { Authflow, Titles } = require("prismarine-auth");
         restrictInvitesToLeader: false,
         autoConnectRPC: true,
         /*
-            partyId: "",
+            partyId: "", //  WIP
             flow: "sisu",
             authTitle: Titles.MinecraftNintendoSwitch,
             deviceType: "Nintendo",
@@ -33,7 +33,7 @@ const { Authflow, Titles } = require("prismarine-auth");
         PAPI.invitePlayer("Xbox User ID")
 
         PAPI.on("message", (msg) => {
-            console.log("Received system message:", msg);
+            console.log("Received message:", msg);
         });
 
         PAPI.on("PartyChat_ReceiveChat_v1_0", (params) => {

@@ -1,12 +1,8 @@
 const { RTCPeerConnection, RTCIceCandidate } = require("@roamhq/wrtc");
 
 async function createRTC(credentials) {
-    const configuration = {
-        iceServers: credentials
-    };
-
-    const peerConnection = new RTCPeerConnection(configuration);
-    const dataChannel = peerConnection.createDataChannel("chat");
+    const peerConnection = new RTCPeerConnection({ iceServers: credentials });
+    const dataChannel = peerConnection.createDataChannel("dc");
 
     await peerConnection.setLocalDescription(await peerConnection.createOffer());
 
