@@ -1,7 +1,11 @@
 # PartyX
 A library to manage Minecraft Parties!
 
+---
+
 ![PartyX Showcase](./imgs/PartyXShowcase.png)
+
+---
 
 ## Installation
 ```bash
