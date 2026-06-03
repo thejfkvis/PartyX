@@ -114,6 +114,7 @@ class Party extends EventEmitter {
                 const lobbyData = await this.getLobby(invite.result.id);
 
                 this.party = lobbyData.Lobby
+                this.party.id = lobbyData.Lobby.LobbyId
             } else {
                 const lobbyData = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
 
@@ -197,6 +198,18 @@ class Party extends EventEmitter {
     async sendChat(message) {
         if (!this.rpc) throw new Error("RPC not connected");
         return this.rpc.write("PartyChat_SendChat_v1_0", { partyId: this.party.id, message });
+    }
+
+    async setLeader(playerId) {
+        if (!this.party.id) throw new Error("No Party ID found. Did you create a party?")
+
+        return await this.MCMAPI.setLeader(this.party.id, playerId)
+    }
+
+    async kick(playerId, preventRejoin = false) {
+        if (!this.party.id) throw new Error("No Party ID found. Did you create a party?")
+
+        return await this.MCMAPI.removePlayer(this.party.id, playerId, preventRejoin)
     }
 
     async setDestination(type, params) {

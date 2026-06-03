@@ -41,7 +41,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
         const text = await response.text();
 
         try {
-            return text ? JSON.parse(text) : { success: response.ok };
+            return text ? JSON.parse(text) : text
         } catch (e) {
             return text;
         }
@@ -127,11 +127,11 @@ class MCMultiplayerAPI extends PlayFabAPI {
         const destinationType = type.toLowerCase();
 
         const defaults = {
-            world: {
+            p2p: {
                 destinationScanText: "Minecraft World",
                 xblSessionHandleId: "0"
             },
-            realm: {
+            realms: {
                 destinationScanText: "Minecraft Realm",
                 realmId: "0"
             },
@@ -152,9 +152,15 @@ class MCMultiplayerAPI extends PlayFabAPI {
         let body;
 
         switch (destinationType) {
-            case "realm":
+            case "p2p":
+                 body = {
+                    ...defaults.p2p,
+                    ...options
+                }
+                break;
+            case "realms":
                 body = {
-                    ...defaults.realm,
+                    ...defaults.realms,
                     ...options
                 }
                 break
@@ -183,6 +189,20 @@ class MCMultiplayerAPI extends PlayFabAPI {
             endpoint: `/join/experience/${partyId}`,
             method: "POST",
             apiVersion: "2.0"
+        });
+    }
+
+    async setLeader(partyId, playerId) {
+        return await this.#req({
+            endpoint: `/party/${partyId}/setLeader`,
+            body: { playerId }
+        });
+    }
+
+    async removePlayer(partyId, playerId, preventRejoin = false) {
+         return await this.#req({
+            endpoint: `/party/${partyId}/remove`,
+            body: { playerId, preventRejoin }
         });
     }
 }
