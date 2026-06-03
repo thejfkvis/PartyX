@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A library to manage the new Minecraft Parties feature",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,7 +12,7 @@
     "url": "git+https://github.com/thejfkvis/PartyX.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "thejfkvis",
   "license": "AGPL-3.0",
   "type": "commonjs",
   "bugs": {

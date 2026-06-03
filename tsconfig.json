@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "partyx": ["./index.d.ts"]
+    }
+  }
+}
