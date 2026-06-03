@@ -42,6 +42,10 @@ const { Authflow, Titles } = require("prismarine-auth");
             console.log(`[Chat] ${params.Sender}: ${params.ScanText}`);
         });
 
+        PAPI.on("left", (reason) => {
+            console.log("Reason", reason)
+        })
+
         PAPI.on("connected", (rtc) => {
             console.log("Connected");
 

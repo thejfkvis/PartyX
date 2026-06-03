@@ -95,8 +95,23 @@ class Party extends EventEmitter {
             if (!this.pub?.connectionHandle) throw new Error("Failed to retrieve PubSub connection handle");
 
             this.pub.ws.on("ReceiveMessage", (msg) => {
-                this.emit("pubsub_message", msg);
+                const payloadString = Buffer.from(msg.payload).toString("utf8");
+                const data = JSON.parse(payloadString);
+
+                this.emit("ReceiveMessage_Pub", { topic: msg.topic, ...data });
             });
+
+            this.pub.ws.on("ReceiveSubscriptionChangeMessage", (msg) => {
+                if (msg.topic.includes(this.party.id)) {
+                    switch (msg.status) {
+                        case "UnsubscribeSuccess":
+                            this.leaveParty(msg.unsubscribeReason)
+                            break;
+                    }
+
+                    this.emit("ReceiveSubscriptionChangeMessage_Pub", msg)
+                }
+            })
 
             await this.subscribeToLobbyResource("LobbyInvite", "@me", this.pub.connectionHandle);
 
@@ -201,7 +216,7 @@ class Party extends EventEmitter {
         return this.MCMAPI.invitePlayerToParty(this.party.id, playerId, clientVersion);
     }
 
-    async leaveParty() {
+    async leaveParty(reason = "Client disconnect") {
         if (!this.party?.id) return;
 
         const partyId = this.party.id;
@@ -210,11 +225,13 @@ class Party extends EventEmitter {
 
             const res = await this.MCMAPI.leaveParty(partyId);
             this.party = null;
+            this.rpc.destroy(false)
             this.rpc = null;
             this.rtc = null;
             this.initialized = false;
 
-            this.emit("left");
+            this.emit("left", reason);
+
             return res;
         } catch (error) {
             this.emit("error", new Error("Error while leaving party: " + error.message));

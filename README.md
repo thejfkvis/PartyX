@@ -124,9 +124,14 @@ party.on("message", (msg) => {
     console.log("System message:", msg);
 });
 
-// PubSub (SignalR) messages
-party.on("pubsub_message", (msg) => {
-    console.log("PubSub message:", msg)
+// ReceiveMessage Pub (SignalR) messages
+party.on("ReceiveMessage_Pub", (msg) => {
+    console.log("Received PubSub message:", msg)
+})
+
+// ReceiveSubscriptionChangeMessage Pub (SignalR) messages
+party.on("ReceiveSubscriptionChangeMessage_Pub", (msg) => {
+    console.log("Received PubSub Subscription Change message:", msg)
 })
 
 // Errors
@@ -135,8 +140,8 @@ party.on("error", (error) => {
 });
 
 // Left party
-party.on("left", () => {
-    console.log("Left the party");
+party.on("left", (reason) => {
+    console.log("Left the party", reason);
 });
 ```
 

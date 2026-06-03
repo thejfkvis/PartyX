@@ -88,9 +88,10 @@ export class Party extends EventEmitter {
     connectRPC(partyId?: string, version?: string): Promise<any>;
 
     on(event: 'ready', listener: (info: { partyId: string; party: PartyInfo }) => void): this;
-    on(event: 'left', listener: () => void): this;
+    on(event: 'left', listener: (reason: String) => void): this;
     on(event: 'error', listener: (err: Error) => void): this;
-    on(event: 'pubsub_message', listener: (msg: PubSubMessage) => void): this;
+    on(event: 'ReceiveMessage_Pub', listener: (msg: PubSubMessage) => void): this;
+    on(event: 'ReceiveSubscriptionChangeMessage_Pub', listener: (msg: PubSubMessage) => void): this;
     on(event: 'credentials', listener: (credentials: any) => void): this;
     on(event: 'connected', listener: (rtc: any) => void): this;
     on(event: 'message', listener: (data: any) => void): this;
