@@ -26,6 +26,27 @@ export interface PartyInfo {
     [key: string]: any;
 }
 
+export interface GatheringParams {
+    creatorId: string;
+    experienceId: string;
+    experienceName: string;
+    scenarioId: string;
+    serverId: string;
+    targetId: string;
+    worldId: string;
+    worldName: string;
+}
+
+export interface RealmsParams {
+    destinationScanText: string;
+    realmId: string;
+}
+
+export interface P2PParams {
+    destinationScanText: string;
+    xblSessionHandleId: string;
+}
+
 export type PubSubMessage = any;
 
 export class Party extends EventEmitter {
@@ -58,8 +79,12 @@ export class Party extends EventEmitter {
     sendChat(message: string): Promise<any>;
     setLeader(playerId: string): Promise<any>;
     kick(playerId: string, preventRejoin?: boolean): Promise<any>;
-    setDestination(type: 'gathering' | 'realms' | 'p2p' | string, params: Record<string, any>): Promise<any>;
-    deleteDestination(type: 'gathering' | 'realms' | 'p2p' | string): Promise<any>;
+
+    setDestination(type: 'gathering', params: GatheringParams): Promise<any>;
+    setDestination(type: 'realms', params: RealmsParams): Promise<any>;
+    setDestination(type: 'p2p', params: P2PParams): Promise<any>;
+
+    deleteDestination(type: 'gathering' | 'realms' | 'p2p'): Promise<any>;
     connectRPC(partyId?: string, version?: string): Promise<any>;
 
     on(event: 'ready', listener: (info: { partyId: string; party: PartyInfo }) => void): this;
