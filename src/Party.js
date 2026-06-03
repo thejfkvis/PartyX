@@ -120,7 +120,7 @@ class Party extends EventEmitter {
             } else {
                 const lobbyData = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
 
-                party = lobbyData;
+                party = lobbyData.result;
             }
 
             if (party.id || party.LobbyId) await this.completeInit(party)
