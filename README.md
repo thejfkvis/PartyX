@@ -47,7 +47,7 @@ console.log("Party ID:", party.party.id);
 
 **Invite a player:**
 ```javascript
-await party.invitePlayer("xbox-user-id");
+await party.invitePlayer("Xbox User ID");
 ```
 
 **Leave party:**
@@ -107,6 +107,40 @@ party.on("left", () => {
 await party.sendChat("Hello world!");
 ```
 
+**Kick a player**:
+```javascript
+await party.kick("Xbox User ID", false)
+```
+
+**Set player as leader**:
+```javascript
+await party.setLeader("Xbox User ID")
+```
+
+**Set Destination**
+```javascript
+await party.setDestination("gathering", {
+    creatorId: "0",
+    experienceId: "0",
+    experienceName: "PartyX Session",
+    scenarioId: "0",
+    serverId: "0",
+    targetId: "0",
+    worldId: "0",
+    worldName: "PartyX"
+})
+
+await party.setDestination("realms", {
+    destinationScanText: "Minecraft Realm",
+    realmId: "0"
+})
+
+await party.setDestination("p2p", {
+    destinationScanText: "Minecraft World",
+    xblSessionHandleId: "0"
+})
+```
+
 ## Options
 
 When creating a Party instance, you can pass these options:
@@ -118,6 +152,6 @@ When creating a Party instance, you can pass these options:
 - `autoConnectRPC` - Automatically connect RPC on init (default: true)
 - `waitForInvite` - Wait for a invite from a user and automatically accept it (optional)
 - `inviteTimeout` - The amount of time to wait for a invite if waitForInvite is enabled (optional)
+- `joinManually` - Join manually by finding a open party using .findParties(), selecting one, and doing .joinParty() and then ending it off with .completeInit(party.result) (optional)
 
 ## Plans
-- Join listed opened parties

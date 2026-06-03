@@ -157,6 +157,21 @@ class XboxAPI {
         return result.status === 200 ? result.data?.people || [] : result;
     }
 
+    async sendPresence(body = {}) {
+        const result = await this.#req(`https://userpresence.xboxlive.com/users/xuid(${this.xuid})/devices/current/titles/current`, {
+            method: "POST",
+            headers: {
+                "x-xbl-contract-version": 3,
+                "Accept": "application/json",
+                "Content-Type": "application/json; charset=UTF-8",
+                "Host": "userpresence.xboxlive.com"
+            },
+            body
+        });
+
+        return result.status === 200 ? "success" : result;
+    }
+
     async addUser(XUID = "") {
         if (typeof XUID != "string" || XUID.length === 0) return;
 

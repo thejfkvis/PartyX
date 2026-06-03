@@ -16,6 +16,7 @@ class Party extends EventEmitter {
             autoConnectRPC: true,
             inviteTimeout: 60000,
             waitForInvite: false,
+            joinManually: false,
             ...options,
         };
 
@@ -34,10 +35,10 @@ class Party extends EventEmitter {
     _setupExitHandlers() {
         const cleanup = async () => {
             if (this.party?.id) {
-
                 console.log("\n[Party] Clean exit: Leaving party...");
                 try {
                     await this.leaveParty();
+                    clearInterval(this.presenceInterval)
                 } catch (e) {
                     console.error("[Party] Error occurred while leaving party:", e);
                 }
@@ -93,13 +94,15 @@ class Party extends EventEmitter {
             this.pub = await this.getPubSubConnectionHandle();
             if (!this.pub?.connectionHandle) throw new Error("Failed to retrieve PubSub connection handle");
 
-            this.pub.ws.on("ReceiveMessage", (msg) => {;
+            this.pub.ws.on("ReceiveMessage", (msg) => {
                 this.emit("pubsub_message", msg);
             });
 
             await this.subscribeToLobbyResource("LobbyInvite", "@me", this.pub.connectionHandle);
 
-            let partyId;
+            let party, partyId;
+
+            if (this.options.joinManually) return this;
 
             if (this.options.waitForInvite) {
                 console.log("Waiting for a lobby invite...");
@@ -113,24 +116,15 @@ class Party extends EventEmitter {
 
                 const lobbyData = await this.getLobby(invite.result.id);
 
-                this.party = lobbyData.Lobby
-                this.party.id = lobbyData.Lobby.LobbyId
+                party = lobbyData.Lobby
             } else {
                 const lobbyData = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
 
-                this.party = lobbyData.result
-
-                partyId = this.party?.id;
+                party = lobbyData;
             }
 
-            if (!partyId) throw new Error("Could not determine Party ID");
+            if (party.id || party.LobbyId) await this.completeInit(party)
 
-            await this.subscribeToLobbyResource("LobbyChange", partyId, this.pub.connectionHandle);
-
-            if (this.options.autoConnectRPC) await this.connectRPC(partyId, this.options.clientVersion);
-
-            this.initialized = true;
-            this.emit("ready", { partyId, party: this.party });
             return this;
         } catch (error) {
             this.emit("error", error);
@@ -138,14 +132,46 @@ class Party extends EventEmitter {
         }
     }
 
+    async completeInit(party) {
+        if (party.LobbyId) party.id = party.LobbyId;
+        if (!party.id) throw new Error("Could not determine Party ID");
+
+        this.party = party;
+
+        await this.subscribeToLobbyResource("LobbyChange", party.id, this.pub.connectionHandle);
+
+        if (this.options.autoConnectRPC) await this.connectRPC(party.id, this.options.clientVersion);
+
+        this.initialized = true;
+        this.emit("ready", { partyId: party.id, party });
+
+        this.updatePresence({});
+
+        this.presenceInterval = (() => {
+            this.updatePresence({});
+        }, 60000)
+
+        return this.party;
+    }
+
+    async updatePresence() {
+        return await this.MCMAPI.sendPresence({})
+    }
+
     async findParties() {
-        const lobbies = await this.MCMAPI.findLobbies();
-        if (!lobbies?.result?.Lobbies) throw new Error("Failed to retrieve lobbies");
-        return lobbies.result.Lobbies;
+        const lobbies = await this.MCMAPI.findParties();
+        if (!lobbies?.result) throw new Error("Failed to retrieve lobbies");
+        return lobbies.result;
     }
 
     async createParty(version = this.options.clientVersion, privacy = this.options.privacy, restrict = this.options.restrictInvitesToLeader) {
         const party = await this.MCMAPI.createParty(version, privacy, restrict);
+        if (party?.result?.id) this.party = party;
+        return party;
+    }
+
+    async joinParty(partyId, version = this.options.clientVersion) {
+        const party = await this.MCMAPI.joinParty(partyId, version);
         if (party?.result?.id) this.party = party;
         return party;
     }

@@ -67,6 +67,22 @@ class MCMultiplayerAPI extends PlayFabAPI {
         });
     }
 
+    async joinParty(partyId, clientVersion = Version) {
+        const xboxToken = await this.getXboxAuthToken()
+        if (typeof xboxToken === "object" && xboxToken.errorMsg) throw new Error(xboxToken.errorMsg);
+
+        const body = {
+            xboxToken,
+            memberData: { clientVersion }
+        };
+
+        return await this.#req({
+            endpoint: `/party/${partyId}/join`,
+            method: "POST",
+            body
+        });
+    }
+
     async invitePlayerToParty(partyId, playerId, clientVersion = Version) {
         const xboxToken = await this.getXboxAuthToken()
         if (typeof xboxToken === "object" && xboxToken.errorMsg) throw new Error(xboxToken.errorMsg);
@@ -79,7 +95,7 @@ class MCMultiplayerAPI extends PlayFabAPI {
     }
 
     async findParties(clientVersion = Version) {
-        const xboxToken = await this.getXboxAuthToken("https://b980a380.minecraft.playfabapi.com/")
+        const xboxToken = await this.getXboxAuthToken("http://playfab.xboxlive.com/")
         if (typeof xboxToken === "object" && xboxToken.errorMsg) throw new Error(xboxToken.errorMsg);
 
         return await this.#req({

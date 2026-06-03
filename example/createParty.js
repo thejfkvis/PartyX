@@ -17,6 +17,7 @@ const { Authflow, Titles } = require("prismarine-auth");
         restrictInvitesToLeader: false,
         autoConnectRPC: true,
         /*
+            joinManually: true,
             waitForInvite: true,
             inviteTimeout: 60000,
             flow: "sisu",
@@ -44,7 +45,7 @@ const { Authflow, Titles } = require("prismarine-auth");
         PAPI.on("connected", (rtc) => {
             console.log("Connected");
 
-            if (!PAPI.options.waitForInvite) PAPI.setDestination("gathering", {
+            PAPI.setDestination("gathering", {
                 creatorId: "0",
                 experienceId: "0",
                 experienceName: "PartyX Session",
