@@ -55,6 +55,46 @@ await party.invitePlayer("Xbox User ID");
 await party.leaveParty();
 ```
 
+**Kick a player**:
+```javascript
+await party.kick("Xbox User ID", false)
+```
+
+**Set player as leader**:
+```javascript
+await party.setLeader("Xbox User ID")
+```
+
+**Set Destination**
+```javascript
+await party.setDestination("gathering", {
+    creatorId: "0",
+    experienceId: "0",
+    experienceName: "PartyX Session",
+    scenarioId: "0",
+    serverId: "0",
+    targetId: "0",
+    worldId: "0",
+    worldName: "PartyX"
+})
+
+await party.setDestination("realms", {
+    destinationScanText: "Minecraft Realm",
+    realmId: "0"
+})
+
+await party.setDestination("p2p", {
+    destinationScanText: "Minecraft World",
+    xblSessionHandleId: "0"
+})
+```
+
+**Delete Destination**
+```javascript
+// gathering, realms, p2p supported
+await party.deleteDestination("gathering")
+```
+
 ### Events
 
 Listen to party events:
@@ -105,40 +145,6 @@ party.on("left", () => {
 **Send a chat message:**
 ```javascript
 await party.sendChat("Hello world!");
-```
-
-**Kick a player**:
-```javascript
-await party.kick("Xbox User ID", false)
-```
-
-**Set player as leader**:
-```javascript
-await party.setLeader("Xbox User ID")
-```
-
-**Set Destination**
-```javascript
-await party.setDestination("gathering", {
-    creatorId: "0",
-    experienceId: "0",
-    experienceName: "PartyX Session",
-    scenarioId: "0",
-    serverId: "0",
-    targetId: "0",
-    worldId: "0",
-    worldName: "PartyX"
-})
-
-await party.setDestination("realms", {
-    destinationScanText: "Minecraft Realm",
-    realmId: "0"
-})
-
-await party.setDestination("p2p", {
-    destinationScanText: "Minecraft World",
-    xblSessionHandleId: "0"
-})
 ```
 
 ## Options
