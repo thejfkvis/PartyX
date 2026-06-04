@@ -3,7 +3,7 @@ A library to manage Minecraft Parties!
 
 ---
 
-![PartyX Showcase](./imgs/PartyXShowcase.png)
+![PartyX Showcase](./imgs/PartyXShowcase2.png)
 
 ---
 
