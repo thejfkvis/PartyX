@@ -60,6 +60,8 @@ export class Party extends EventEmitter {
     presenceInterval?: any;
     MCMAPI: any;
     PUBAPI: any;
+    members: Map<String, Object>;
+    changeNumber: Number;
 
     init(): Promise<this>;
     completeInit(party: PartyInfo): Promise<PartyInfo>;
@@ -88,7 +90,9 @@ export class Party extends EventEmitter {
     connectRPC(partyId?: string, version?: string): Promise<any>;
 
     on(event: 'ready', listener: (info: { partyId: string; party: PartyInfo }) => void): this;
-    on(event: 'left', listener: (reason: String) => void): this;
+    on(event: 'disconnect', listener: (reason: String) => void): this;
+    on(event: 'join', listener: (data: Object) => void): this;
+    on(event: 'leave', listener: (data: Object) => void): this;
     on(event: 'error', listener: (err: Error) => void): this;
     on(event: 'ReceiveMessage_Pub', listener: (msg: PubSubMessage) => void): this;
     on(event: 'ReceiveSubscriptionChangeMessage_Pub', listener: (msg: PubSubMessage) => void): this;

@@ -139,10 +139,20 @@ party.on("error", (error) => {
     console.error("Party error:", error);
 });
 
-// Left party
-party.on("left", (reason) => {
-    console.log("Left the party", reason);
+// Client disconnected from party
+party.on("disconnect", (reason) => {
+    console.log("Disconnected the party", reason);
 });
+
+// A player has joined the party
+party.on("join", (e) => {
+    console.log("A new player has joined!", e)
+})
+
+// A player has left the party
+party.on("leave", (e) => {
+    console.log("A player has left!", e)
+})
 ```
 
 ### Chat

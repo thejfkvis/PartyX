@@ -28,6 +28,8 @@ class Party extends EventEmitter {
         this.rpc = null;
         this.rtc = null;
         this.initialized = false;
+        this.members = new Map();
+        this.changeNumber = 0;
 
         this._setupExitHandlers();
     }
@@ -90,61 +92,97 @@ class Party extends EventEmitter {
     async init() {
         if (this.initialized) return this;
 
-        try {
-            this.pub = await this.getPubSubConnectionHandle();
-            if (!this.pub?.connectionHandle) throw new Error("Failed to retrieve PubSub connection handle");
+        this.pub = await this.getPubSubConnectionHandle();
+        if (!this.pub?.connectionHandle) throw new Error("Failed to retrieve PubSub connection handle");
 
-            this.pub.ws.on("ReceiveMessage", (msg) => {
-                const payloadString = Buffer.from(msg.payload).toString("utf8");
-                const data = JSON.parse(payloadString);
+        this.pub.ws.on("ReceiveMessage", async (msg) => {
+            const payloadString = Buffer.from(msg.payload).toString("utf8");
+            const data = JSON.parse(payloadString);
 
-                this.emit("ReceiveMessage_Pub", { topic: msg.topic, ...data });
-            });
+            if (msg.topic.includes("LobbyChange")) {
+                for (const change of data.lobbyChanges) {
+                    this.changeNumber = change.changeNumber;
 
-            this.pub.ws.on("ReceiveSubscriptionChangeMessage", (msg) => {
-                if (msg.topic.includes(this.party.id)) {
-                    switch (msg.status) {
-                        case "UnsubscribeSuccess":
-                            this.leaveParty(msg.unsubscribeReason)
-                            break;
+                    const { memberToDelete, memberToMerge } = change;
+
+                    const delId = memberToDelete?.memberEntity?.Id;
+
+                    if (delId && this.members.delete(delId)) {
+                        this.emit("leave", memberToDelete);
+
+                        continue;
                     }
 
-                    this.emit("ReceiveSubscriptionChangeMessage_Pub", msg)
+                    const updId = memberToMerge?.memberEntity?.Id;
+
+                    if (updId) {
+                        const eMember = this.members.get(updId);
+
+                        if (eMember) {
+                            Object.assign(eMember, memberToMerge);
+                        } else {
+                            this.members.set(updId, memberToMerge);
+
+                            if (memberToMerge.memberData) {
+                                const profile = await this.MCMAPI.getXboxUser(memberToMerge.memberData.Xuid);
+                                memberToMerge.memberData.XblName = profile.gamertag;
+                            } else {
+                                continue
+                            }
+
+                            this.emit("join", memberToMerge);
+                        }
+                    }
                 }
-            })
-
-            await this.subscribeToLobbyResource("LobbyInvite", "@me", this.pub.connectionHandle);
-
-            let party, partyId;
-
-            if (this.options.joinManually) return this;
-
-            if (this.options.waitForInvite) {
-                console.log("Waiting for a lobby invite...");
-
-                let partyData = await this.waitForInvite();
-                partyId = partyData.lobbyId;
-
-                const invite = await this.MCMAPI.acceptInvite(partyData.lobbyId, partyData.connectionString);
-
-                if (!invite?.result?.id) throw new Error("Could not determine Party ID from invite");
-
-                const lobbyData = await this.getLobby(invite.result.id);
-
-                party = lobbyData.Lobby
-            } else {
-                const lobbyData = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
-
-                party = lobbyData.result;
             }
 
-            if (party.id || party.LobbyId) await this.completeInit(party)
+            this.emit("ReceiveMessage_Pub", { topic: msg.topic, ...data });
+        });
 
-            return this;
-        } catch (error) {
-            this.emit("error", error);
-            throw error;
+        this.pub.ws.on("ReceiveSubscriptionChangeMessage", (msg) => {
+            if (msg.topic.includes(this.party.id)) {
+                switch (msg.status) {
+                    case "UnsubscribeSuccess":
+                        this.leaveParty(msg.unsubscribeReason)
+                        break;
+                }
+
+                this.emit("ReceiveSubscriptionChangeMessage_Pub", msg)
+            }
+        })
+
+        await this.subscribeToLobbyResource("LobbyInvite", "@me", this.pub.connectionHandle);
+
+        let party, partyId;
+
+        if (this.options.joinManually) return this;
+
+        if (this.options.waitForInvite) {
+            console.log("Waiting for a lobby invite...");
+
+            let partyData = await this.waitForInvite();
+            partyId = partyData.lobbyId;
+
+            const invite = await this.MCMAPI.acceptInvite(partyData.lobbyId, partyData.connectionString);
+
+            if (!invite?.result?.id) throw new Error("Could not determine Party ID from invite");
+
+            const lobbyData = await this.getLobby(invite.result.id);
+
+            party = lobbyData.Lobby
+        } else {
+            let lobbyData = await this.createParty(this.options.clientVersion, this.options.privacy, this.options.restrictInvitesToLeader);
+
+            lobbyData = await this.getLobby(lobbyData.result.id)
+
+            party = lobbyData.Lobby
         }
+
+        this.changeNumber = party.ChangeNumber;
+
+        if (party.LobbyId) await this.completeInit(party)
+
+        return this;
     }
 
     async completeInit(party) {
@@ -152,6 +190,26 @@ class Party extends EventEmitter {
         if (!party.id) throw new Error("Could not determine Party ID");
 
         this.party = party;
+
+        for (const member of party.Members) {
+            if (member.MemberData.Xuid) {
+                const profile = await this.MCMAPI.getXboxUser(member.MemberData.Xuid);
+                member.MemberData.XblName = profile.gamertag;
+            }
+
+            const emptyPubSub = member.PubSubConnectionHandle.length === 0;
+
+            // Do lowercase versions as we want this accurate as possible to whenever it's done by the PubSub connection.
+            this.members.set(member.MemberEntity.Id, {
+                memberData: member.MemberData,
+                memberEntity: {
+                    Type: member.MemberEntity.Type,
+                    Id: member.MemberEntity.Id
+                },
+                // If it's empty then it's probably us twin, dont lie
+                pubSubConnectionHandle: emptyPubSub ? this.pub.connectionHandle : member.PubSubConnectionHandle
+            })
+        }
 
         await this.subscribeToLobbyResource("LobbyChange", party.id, this.pub.connectionHandle);
 
@@ -229,8 +287,10 @@ class Party extends EventEmitter {
             this.rpc = null;
             this.rtc = null;
             this.initialized = false;
+            this.members = null;
+            this.changeNumber = 0;
 
-            this.emit("left", reason);
+            this.emit("disconnect", reason);
 
             return res;
         } catch (error) {

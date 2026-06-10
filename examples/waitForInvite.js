@@ -42,8 +42,16 @@ const { Authflow, Titles } = require("prismarine-auth");
             console.log(`[Chat] ${params.Sender}: ${params.ScanText}`);
         });
 
-        PAPI.on("left", (reason) => {
+        PAPI.on("disconnect", (reason) => {
             console.log("Reason", reason)
+        })
+
+        PAPI.on("join", (e) => {
+            console.log("A new player has joined!", e)
+        })
+
+        PAPI.on("leave", (e) => {
+            console.log("A player has left!", e)
         })
 
         PAPI.on("connected", (rtc) => {

@@ -122,9 +122,6 @@ class XboxAPI {
     }
 
     async getXboxUser(xuid = "") {
-        await this.getXboxAuthToken();
-
-        if (!xuid) xuid = this.xuid;
         if (!xuid || typeof xuid != "string" || xuid.length === 0) throw new Error("No XUID provided");
 
         const result = await this.#req(`https://peoplehub.xboxlive.com/users/me/people/xuids(${xuid})/decoration/detail,preferredColor,presenceDetail`, {
